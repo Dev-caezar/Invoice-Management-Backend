@@ -15,7 +15,12 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:4000/api",
+        url: process.env.BASE_URL,
+        description: "Live server",
+      },
+      {
+        url: `http://localhost:${process.env.PORT}`,
+        description: "Local server",
       },
     ],
   },
