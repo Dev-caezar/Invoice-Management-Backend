@@ -20,13 +20,30 @@ const addressSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const Invoice = new mongoose.Schema(
+const invoiceSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
 
-    createdAt: { type: Date, required: true },
-    paymentDue: { type: Date, required: true },
-    paymentTerms: { type: Number, required: true },
+    createdAt: {
+      type: Date,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
+
+    paymentDue: {
+      type: Date,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
+
+    paymentTerms: {
+      type: Number,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
 
     description: String,
 
@@ -38,18 +55,41 @@ const Invoice = new mongoose.Schema(
 
     senderAddress: addressSchema,
 
-    clientName: { type: String, required: true },
-    clientEmail: { type: String, required: true },
+    clientName: {
+      type: String,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
+
+    clientEmail: {
+      type: String,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
+
     clientAddress: addressSchema,
 
     items: {
       type: [itemSchema],
-      validate: [(val) => val.length > 0, "At least one item required"],
+      validate: {
+        validator: function (val) {
+          if (this.status === "draft") return true;
+          return val.length > 0;
+        },
+        message: "At least one item required",
+      },
     },
 
-    total: { type: Number, required: true },
+    total: {
+      type: Number,
+      required: function () {
+        return this.status !== "draft";
+      },
+    },
   },
   { timestamps: true },
 );
 
-export default mongoose.model("Invoice", Invoice);
+export default mongoose.model("Invoice", invoiceSchema);

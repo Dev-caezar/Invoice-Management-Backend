@@ -17,34 +17,46 @@ export const createInvoice = async (req, res) => {
       status,
     } = req.body;
 
-    // 🔴 Validation
-    if (!clientName || !clientEmail) {
-      return res.status(400).json({
-        message: "Client name and email are required",
-      });
+    const isDraft = status === "draft";
+
+    if (!isDraft) {
+      if (!clientName || !clientEmail) {
+        return res.status(400).json({
+          message: "Client name and email are required",
+        });
+      }
+
+      if (!items || items.length === 0) {
+        return res.status(400).json({
+          message: "At least one item is required",
+        });
+      }
     }
 
-    if (!items || items.length === 0) {
-      return res.status(400).json({
-        message: "At least one item is required",
-      });
+    let calculatedItems = [];
+    let total = 0;
+
+    if (items && items.length > 0) {
+      const result = calculateInvoice(items);
+      calculatedItems = result.calculatedItems;
+      total = result.total;
     }
 
-    // 🔢 Calculate totals
-    const { calculatedItems, total } = calculateInvoice(items);
+    let paymentDue = null;
 
-    // 📅 Payment due
-    const paymentDue = calculatePaymentDue(createdAt, paymentTerms);
+    if (createdAt && paymentTerms) {
+      paymentDue = calculatePaymentDue(createdAt, paymentTerms);
+    }
 
-    // 🆔 Generate ID (no loop)
     const invoiceId = generateInvoiceId();
 
     const invoice = new invoiceModel({
       id: invoiceId,
-      createdAt,
+      createdAt: createdAt || new Date(),
       paymentDue,
       paymentTerms,
       description,
+
       status: status || "pending",
 
       senderAddress,
@@ -59,7 +71,9 @@ export const createInvoice = async (req, res) => {
     await invoice.save();
 
     return res.status(201).json({
-      message: "Invoice created successfully",
+      message: isDraft
+        ? "Invoice saved as draft"
+        : "Invoice created successfully",
       data: invoice,
     });
   } catch (error) {
