@@ -1,6 +1,7 @@
 import path from "path";
 import swaggerJSDoc from "swagger-jsdoc";
 import { fileURLToPath } from "url";
+import { config } from "./env.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,11 +16,11 @@ const options = {
     },
     servers: [
       {
-        url: process.env.BASE_URL,
+        url: config.baseUrl,
         description: "Live server",
       },
       {
-        url: `http://localhost:${process.env.PORT}`,
+        url: `http://localhost:${config.port}`,
         description: "Local server",
       },
     ],
