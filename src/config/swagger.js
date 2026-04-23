@@ -16,7 +16,7 @@ const options = {
     },
     servers: [
       {
-        url: `${config.baseUrl}/api`,
+        url: `${config.baseUrl}`,
         description: "Live server",
       },
       {
