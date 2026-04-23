@@ -16,11 +16,11 @@ const options = {
     },
     servers: [
       {
-        url: config.baseUrl,
+        url: `${config.baseUrl}/api`,
         description: "Live server",
       },
       {
-        url: `http://localhost:${config.port}`,
+        url: `http://localhost:${config.port}/api`,
         description: "Local server",
       },
     ],
