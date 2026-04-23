@@ -73,6 +73,7 @@ export const createInvoice = async (req, res) => {
 
     return res.status(500).json({
       message: "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -258,6 +259,7 @@ export const markAsPaid = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to update invoice status",
+      error: error.message,
     });
   }
 };
