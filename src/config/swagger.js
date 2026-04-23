@@ -1,32 +1,32 @@
 import path from "path";
 import swaggerJSDoc from "swagger-jsdoc";
 import { fileURLToPath } from "url";
-import { config } from "./env.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Invoice API",
-      version: "1.0.0",
-      description: "Invoice Management API Documentation",
+export const getSwaggerSpec = () => {
+  const options = {
+    definition: {
+      openapi: "3.0.0",
+      info: {
+        title: "Invoice API",
+        version: "1.0.0",
+        description: "Invoice Management API Documentation",
+      },
+      servers: [
+        {
+          url: process.env.BASE_URL,
+          description: "Live server",
+        },
+        {
+          url: `http://localhost:${process.env.PORT || 4000}`,
+          description: "Local server",
+        },
+      ],
     },
-    servers: [
-      {
-        url: config.baseUrl,
-        description: "Live server",
-      },
-      {
-        url: `http://localhost:${config.port}`,
-        description: "Local server",
-      },
-    ],
-  },
+    apis: [path.join(__dirname, "../routes/*.js")],
+  };
 
-  apis: [path.join(__dirname, "../routes/*.js")],
+  return swaggerJSDoc(options);
 };
-
-export const swaggerSpec = swaggerJSDoc(options);
