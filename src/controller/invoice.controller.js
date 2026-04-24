@@ -56,14 +56,11 @@ export const createInvoice = async (req, res) => {
       paymentDue,
       paymentTerms,
       description,
-
       status: status || "pending",
-
       senderAddress,
       clientName,
       clientEmail,
       clientAddress,
-
       items: calculatedItems,
       total,
     });
@@ -99,7 +96,6 @@ export const getInvoices = async (req, res) => {
     let query = {};
 
     if (status) {
-      // allow multiple: ?status=draft,pending
       const statusArray = status.split(",");
 
       query.status = { $in: statusArray };
@@ -116,6 +112,7 @@ export const getInvoices = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to fetch invoices",
+      error: error.message,
     });
   }
 };
@@ -123,9 +120,7 @@ export const getInvoices = async (req, res) => {
 export const getInvoiceById = async (req, res) => {
   try {
     const { id } = req.params;
-
     const invoice = await invoiceModel.findOne({ id });
-
     if (!invoice) {
       return res.status(404).json({
         message: "Invoice not found",
@@ -137,9 +132,9 @@ export const getInvoiceById = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
     return res.status(500).json({
       message: "Failed to fetch invoice",
+      error: error.message,
     });
   }
 };
@@ -147,9 +142,7 @@ export const getInvoiceById = async (req, res) => {
 export const updateInvoice = async (req, res) => {
   try {
     const { id } = req.params;
-
     const existingInvoice = await invoiceModel.findOne({ id });
-
     if (!existingInvoice) {
       return res.status(404).json({
         message: "Invoice not found",
@@ -182,18 +175,13 @@ export const updateInvoice = async (req, res) => {
       calculatedItems = result.calculatedItems;
       total = result.total;
     }
-
-    // 📅 Recalculate payment due if needed
     let paymentDue = existingInvoice.paymentDue;
-
     if (createdAt || paymentTerms) {
       const newCreatedAt = createdAt || existingInvoice.createdAt;
       const newTerms = paymentTerms || existingInvoice.paymentTerms;
-
       paymentDue = calculatePaymentDue(newCreatedAt, newTerms);
     }
 
-    // ⚠️ Validate status
     const allowedStatus = ["draft", "pending", "paid"];
     if (status && !allowedStatus.includes(status)) {
       return res.status(400).json({
@@ -201,21 +189,16 @@ export const updateInvoice = async (req, res) => {
       });
     }
 
-    // 📦 Update fields (only if provided)
     existingInvoice.createdAt = createdAt || existingInvoice.createdAt;
     existingInvoice.paymentTerms = paymentTerms || existingInvoice.paymentTerms;
     existingInvoice.paymentDue = paymentDue;
-
     existingInvoice.description = description || existingInvoice.description;
-
     existingInvoice.clientName = clientName || existingInvoice.clientName;
     existingInvoice.clientEmail = clientEmail || existingInvoice.clientEmail;
-
     existingInvoice.senderAddress =
       senderAddress || existingInvoice.senderAddress;
     existingInvoice.clientAddress =
       clientAddress || existingInvoice.clientAddress;
-
     existingInvoice.items = calculatedItems;
     existingInvoice.total = total;
 
@@ -232,6 +215,7 @@ export const updateInvoice = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to update invoice",
+      error: error.message,
     });
   }
 };
@@ -273,6 +257,34 @@ export const markAsPaid = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to update invoice status",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({
+        message: "Invoice ID is required",
+      });
+    }
+    const invoice = await invoiceModel.findOneAndDelete({ id });
+    if (!invoice) {
+      return res.status(404).json({
+        message: "Invoice not found",
+      });
+    }
+    return res.status(200).json({
+      message: "Invoice deleted successfully",
+      data: invoice,
+    });
+  } catch (error) {
+    console.error("Delete Error:", error);
+
+    return res.status(500).json({
+      message: "Failed to delete invoice",
       error: error.message,
     });
   }

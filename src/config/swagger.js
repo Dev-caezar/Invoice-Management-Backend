@@ -20,7 +20,7 @@ const options = {
         description: "Live server",
       },
       {
-        url: `http://localhost:${config.port}/api`,
+        url: `http://localhost:${config.port}`,
         description: "Local server",
       },
     ],
